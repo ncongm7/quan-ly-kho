@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Quản Lý Kho - Nhập Hàng & Tạo Mã Vạch</title>
+    <link rel="stylesheet" href="assets/style.css">
+    <script src="assets/script.js" defer></script>
+</head>
+<body data-page="nhaphang">
+    <div class="container">
+        <div class="header">
+            <h1>🏪 Hệ Thống Quản Lý Kho</h1>
+            <p>Nhập hàng & Tạo mã vạch tự động</p>
+        </div>
+
+        <nav class="nav-menu">
+            <a href="index.html" class="nav-item" data-page="home">
+                🏠 Trang Chủ
+            </a>
+            <a href="nhaphang.html" class="nav-item active" data-page="nhaphang">
+                📦 Nhập Hàng
+            </a>
+            <a href="banhang.html" class="nav-item" data-page="banhang">
+                🛒 Bán Hàng
+            </a>
+            <a href="dashboard.html" class="nav-item" data-page="dashboard">
+                📊 Tổng Quan
+            </a>
+        </nav>
+
+        <div class="main-content">
+            <div class="connection-status">
+                <span class="status-indicator status-disconnected" id="statusIndicator"></span>
+                <span id="connectionText">Đang kết nối với Google Sheets...</span>
+                <br>
+                <button onclick="window.testConnection()" style="margin-top: 10px; padding: 8px 16px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    🔍 Test Kết Nối
+                </button>
+            </div>
+
+            <form id="importForm">
+                <div class="form-group">
+                    <label for="productSelect">📦 Chọn Sản Phẩm:</label>
+                    <select id="productSelect" class="form-control" required>
+                        <option value="">-- Chọn sản phẩm --</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="quantityInput">📊 Số Lượng Thùng:</label>
+                    <input type="number" id="quantityInput" class="form-control" 
+                           min="1" max="1000" placeholder="Nhập số lượng thùng" required>
+                </div>
+
+                <button type="submit" class="btn" id="submitBtn">
+                    🚀 Nhập Hàng & Tạo Mã Vạch
+                </button>
+            </form>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Đang xử lý...</p>
+            </div>
+
+            <div class="alert alert-success" id="successAlert"></div>
+            <div class="alert alert-error" id="errorAlert"></div>
+
+            <div class="barcode-list" id="barcodeList" style="display: none;">
+                <h3>📋 Danh Sách Mã Vạch Đã Tạo:</h3>
+                <div class="barcode-grid" id="barcodeGrid"></div>
+                <div class="print-section">
+                    <button class="print-btn" id="printBtn" onclick="printBarcodesPDF()">
+                        🖨️ In PDF (12cm x 5cm)
+                    </button>
+                    <button class="print-btn" id="printBtn2" onclick="printBarcodes()" style="margin-left: 10px; background: #27ae60;">
+                        📄 In Thường
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Xử lý form nhập hàng
+        document.getElementById('importForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const productCode = document.getElementById('productSelect').value;
+            const quantity = parseInt(document.getElementById('quantityInput').value);
+            
+            if (!productCode || !quantity) {
+                showError('Vui lòng chọn sản phẩm và nhập số lượng');
+                return;
+            }
+            
+            const product = products.find(p => p.maSP === productCode);
+            if (product) {
+                await importAndCreate(productCode, product.tenSP, quantity);
+            } else {
+                showError('Vui lòng chọn sản phẩm hợp lệ');
+            }
+        });
+    </script>
+</body>
+</html> 

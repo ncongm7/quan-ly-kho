@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Danh Sách Sản Phẩm - Copy vào Google Sheets</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .instructions {
+            background: #e8f4fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #3498db;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background: #2c3e50;
+            color: white;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        tr:hover {
+            background: #f0f0f0;
+        }
+        .copy-btn {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        .copy-btn:hover {
+            background: #229954;
+        }
+        .code-example {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px 0;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📋 Danh Sách Sản Phẩm - Copy vào Google Sheets</h1>
+        
+        <div class="instructions">
+            <h3>📝 Hướng dẫn:</h3>
+            <ol>
+                <li>Copy toàn bộ bảng bên dưới</li>
+                <li>Mở Google Sheets của bạn</li>
+                <li>Paste vào sheet "DANH MUC SAN PHAM"</li>
+                <li>Đảm bảo cột A là "Tên Sản phẩm", cột B là "Mã Sản Phẩm"</li>
+            </ol>
+        </div>
+
+        <table id="productTable">
+            <thead>
+                <tr>
+                    <th>Tên Sản phẩm</th>
+                    <th>Mã Sản Phẩm</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>MÀI DAO</td><td>MD-01</td></tr>
+                <tr><td>VÒI PHUN SƯƠNG</td><td>VPS-01</td></tr>
+                <tr><td>KẸP INOX</td><td>KI-01</td></tr>
+                <tr><td>BẪY CHUỘT</td><td>BC-01</td></tr>
+                <tr><td>TẤM CHẮN NẮNG Ô TÔ</td><td>TCN-01</td></tr>
+                <tr><td>NẠO RAU CỦ</td><td>NRC-01</td></tr>
+                <tr><td>KIỀNG BẾP GA</td><td>KBG-01</td></tr>
+                <tr><td>KẸP ĐỒ NÓNG</td><td>KDN-01</td></tr>
+                <tr><td>ĐẦU NỐI ĐA NĂNG</td><td>DNDN-01</td></tr>
+                <tr><td>RƠ LƯỠI</td><td>RL-01</td></tr>
+                <tr><td>PHUN THUỐC</td><td>PT-01</td></tr>
+                <tr><td>NẠO VẢY CÁ</td><td>NVC-01</td></tr>
+                <tr><td>TAY NẮM CỬA</td><td>TNC-01</td></tr>
+                <tr><td>GIÁ ĐỠ DT DÁN TƯỜNG</td><td>GDDT-01</td></tr>
+                <tr><td>PHAO CHỐNG TRÀN (HPL)</td><td>PCT-01</td></tr>
+                <tr><td>XỊT VỆ SINH (HPL)</td><td>XVS-01</td></tr>
+                <tr><td>BÁNH XE ĐỠ CỬA</td><td>BXDC-01</td></tr>
+                <tr><td>KHÓA TỦ LẠNH</td><td>KTL-01</td></tr>
+                <tr><td>GIÁ ĐỠ VÒI SEN</td><td>GDVS-01</td></tr>
+                <tr><td>CHỔI NVS</td><td>CNVS-01</td></tr>
+                <tr><td>MÓC TREO DÂY ĐIỆN</td><td>MTDD-01</td></tr>
+                <tr><td>CHỐNG VĂNG (HPL)</td><td>CV-01</td></tr>
+                <tr><td>VÒI 360</td><td>V360-01</td></tr>
+                <tr><td>BÀN CHẢI ĐA NĂNG</td><td>BCDN-01</td></tr>
+                <tr><td>ĐUI ĐÈN</td><td>DD-01</td></tr>
+                <tr><td>LÓT MŨ</td><td>LM-01</td></tr>
+                <tr><td>XÂM THỊT</td><td>XT-01</td></tr>
+                <tr><td>BÀN CHẢI TẮM</td><td>BCT-01</td></tr>
+                <tr><td>VAN CỐNG (HPL)</td><td>VC-01</td></tr>
+                <tr><td>ĐẦU TƯỚI NƯỚC TỰ ĐỘNG</td><td>DTNTD-01</td></tr>
+            </tbody>
+        </table>
+
+        <button class="copy-btn" onclick="copyTable()">📋 Copy Bảng</button>
+        <button class="copy-btn" onclick="copyCSV()">📄 Copy CSV</button>
+
+        <div class="code-example">
+            <h4>🔍 Ví dụ mã vạch sẽ được tạo:</h4>
+            <p><strong>MÀI DAO (MD-01):</strong> MD-01-001, MD-01-002, MD-01-003...</p>
+            <p><strong>VÒI PHUN SƯƠNG (VPS-01):</strong> VPS-01-001, VPS-01-002, VPS-01-003...</p>
+            <p><strong>KẸP INOX (KI-01):</strong> KI-01-001, KI-01-002, KI-01-003...</p>
+        </div>
+
+        <div class="instructions">
+            <h3>✅ Sau khi copy:</h3>
+            <ol>
+                <li>Mở file <code>demo.html</code> để test hệ thống</li>
+                <li>Hoặc làm theo hướng dẫn trong <code>HUONG_DAN_TRIEN_KHAI.md</code> để setup thực tế</li>
+                <li>Hệ thống sẽ tự động tạo mã vạch theo format: [Mã SP]-[Số thứ tự 3 chữ số]</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        function copyTable() {
+            const table = document.getElementById('productTable');
+            const range = document.createRange();
+            range.selectNodeContents(table);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            document.execCommand('copy');
+            selection.removeAllRanges();
+            alert('✅ Đã copy bảng! Bây giờ bạn có thể paste vào Google Sheets.');
+        }
+
+        function copyCSV() {
+            const rows = document.querySelectorAll('#productTable tbody tr');
+            let csv = 'Tên Sản phẩm,Mã Sản Phẩm\n';
+            
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                const rowData = Array.from(cells).map(cell => cell.textContent).join(',');
+                csv += rowData + '\n';
+            });
+            
+            navigator.clipboard.writeText(csv).then(() => {
+                alert('✅ Đã copy dữ liệu CSV! Bây giờ bạn có thể paste vào Google Sheets.');
+            }).catch(() => {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = csv;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('✅ Đã copy dữ liệu CSV! Bây giờ bạn có thể paste vào Google Sheets.');
+            });
+        }
+    </script>
+</body>
+</html> 

@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tạo và In Mã Vạch PDF - Sửa lỗi</title>
+    <!-- Thư viện tạo mã vạch -->
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    <!-- Thư viện tạo PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          sans-serif;
+        background-color: #f4f7f6;
+        color: #333;
+        display: flex;
+        justify-content: center;
+        padding: 20px;
+      }
+      .container {
+        width: 100%;
+        max-width: 800px;
+        background-color: white;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      }
+      h1 {
+        text-align: center;
+        color: #0056b3;
+      }
+      .input-section {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+      #barcode-input {
+        flex-grow: 1;
+        padding: 12px;
+        font-size: 1rem;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+      }
+      button {
+        padding: 12px 20px;
+        font-size: 1rem;
+        cursor: pointer;
+        border: none;
+        border-radius: 6px;
+        color: white;
+        transition: background-color 0.2s;
+      }
+      #add-btn {
+        background-color: #007bff;
+      }
+      #add-btn:hover {
+        background-color: #0056b3;
+      }
+      #download-pdf-btn {
+        background-color: #28a745;
+        width: 100%;
+        margin-top: 20px;
+        font-weight: bold;
+      }
+      #download-pdf-btn:hover {
+        background-color: #218838;
+      }
+      #clear-btn {
+        background-color: #dc3545;
+      }
+      #clear-btn:hover {
+        background-color: #c82333;
+      }
+      h2 {
+        border-bottom: 2px solid #eee;
+        padding-bottom: 10px;
+        margin-top: 30px;
+      }
+      #preview-area {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 15px;
+        min-height: 100px;
+        background-color: #f9f9f9;
+        padding: 15px;
+        border-radius: 8px;
+      }
+      .barcode-item {
+        background-color: white;
+        border: 1px solid #ddd;
+        padding: 10px;
+        border-radius: 6px;
+        text-align: center;
+        position: relative;
+      }
+      .barcode-canvas {
+        width: 100%;
+        height: auto;
+      }
+      .remove-btn {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        background-color: #ff4d4d;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        font-weight: bold;
+        line-height: 24px;
+        padding: 0;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Công cụ tạo mã vạch PDF</h1>
+      <p>
+        Nhập mã sản phẩm, nhấn "Thêm Mã", sau đó nhấn "Tải Xuống PDF" để in.
+      </p>
+      <div class="input-section">
+        <input type="text" id="barcode-input" placeholder="Ví dụ: MD-01-001" />
+        <button id="add-btn">Thêm Mã</button>
+        <button id="clear-btn">Xóa Tất Cả</button>
+      </div>
+
+      <h2>Xem trước</h2>
+      <div id="preview-area"></div>
+
+      <button id="download-pdf-btn">Tải Xuống PDF</button>
+    </div>
+
+    <script>
+      const barcodeInput = document.getElementById("barcode-input");
+      const addBtn = document.getElementById("add-btn");
+      const previewArea = document.getElementById("preview-area");
+      const downloadPdfBtn = document.getElementById("download-pdf-btn");
+      const clearBtn = document.getElementById("clear-btn");
+
+      function addBarcodeToPreview() {
+        const code = barcodeInput.value.trim();
+        if (!code) {
+          alert("Vui lòng nhập mã sản phẩm!");
+          return;
+        }
+
+        const itemDiv = document.createElement("div");
+        itemDiv.className = "barcode-item";
+
+        // **THAY ĐỔI QUAN TRỌNG: DÙNG CANVAS THAY VÌ SVG**
+        const canvas = document.createElement("canvas");
+        canvas.className = "barcode-canvas";
+
+        const removeBtn = document.createElement("button");
+        removeBtn.className = "remove-btn";
+        removeBtn.innerHTML = "&times;";
+        removeBtn.onclick = () => itemDiv.remove();
+
+        itemDiv.appendChild(canvas);
+        itemDiv.appendChild(removeBtn);
+        previewArea.appendChild(itemDiv);
+
+        try {
+          // **Vẽ trực tiếp lên canvas**
+          JsBarcode(canvas, code, {
+            format: "CODE128",
+            lineColor: "#000",
+            width: 4, // Tăng độ dày để nét rõ hơn trên PDF
+            height: 160,
+            displayValue: true,
+            fontSize: 36,
+            margin: 10,
+          });
+        } catch (e) {
+          alert("Mã không hợp lệ. Vui lòng kiểm tra lại.");
+          itemDiv.remove();
+        }
+
+        barcodeInput.value = "";
+        barcodeInput.focus();
+      }
+
+      function downloadPDF() {
+        const barcodes = previewArea.querySelectorAll(".barcode-item");
+        if (barcodes.length === 0) {
+          alert("Chưa có mã vạch nào để tạo PDF!");
+          return;
+        }
+
+        downloadPdfBtn.innerText = "Đang xử lý...";
+        downloadPdfBtn.disabled = true;
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({
+          orientation: "landscape",
+          unit: "mm",
+          format: "a4",
+        });
+
+        const BARCODE_WIDTH_MM = 120;
+        const BARCODE_HEIGHT_MM = 50;
+        const MARGIN = 10;
+        let x = MARGIN;
+        let y = MARGIN;
+
+        for (let i = 0; i < barcodes.length; i++) {
+          const item = barcodes[i];
+          // **Lấy canvas từ trong item**
+          const canvasElement = item.querySelector(".barcode-canvas");
+          // **Lấy dữ liệu ảnh trực tiếp từ canvas**
+          const dataUrl = canvasElement.toDataURL("image/jpeg", 1.0); // Dùng JPEG chất lượng cao
+
+          if (
+            y + BARCODE_HEIGHT_MM >
+            doc.internal.pageSize.getHeight() - MARGIN
+          ) {
+            doc.addPage();
+            y = MARGIN;
+          }
+
+          doc.addImage(
+            dataUrl,
+            "JPEG",
+            x,
+            y,
+            BARCODE_WIDTH_MM,
+            BARCODE_HEIGHT_MM
+          );
+          y += BARCODE_HEIGHT_MM + 10;
+        }
+
+        doc.save("danh-sach-ma-vach.pdf");
+
+        downloadPdfBtn.innerText = "Tải Xuống PDF";
+        downloadPdfBtn.disabled = false;
+      }
+
+      // Gắn sự kiện
+      addBtn.addEventListener("click", addBarcodeToPreview);
+      barcodeInput.addEventListener("keyup", (event) => {
+        if (event.key === "Enter") {
+          addBarcodeToPreview();
+        }
+      });
+      downloadPdfBtn.addEventListener("click", downloadPDF);
+      clearBtn.addEventListener("click", () => {
+        previewArea.innerHTML = "";
+      });
+    </script>
+  </body>
+</html>
