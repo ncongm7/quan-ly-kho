@@ -1,10 +1,13 @@
 /* ===== JAVASCRIPT CHUNG CHO HỆ THỐNG QUẢN LÝ KHO (ĐÃ SỬA LỖI KẾT NỐI) ===== */
 
 const SCRIPT_URL =
-    "https://script.google.com/macros/s/AKfycbw3K2SxBERjaSDpaDiey1ZgsYMvxYH4EPuUyTS_tfiEq9QdJZuwZQv-pvrmo63WvyPoDQ/exec";
-// Biến toàn cục
-
+    "https://script.google.com/macros/s/AKfycbzD3vgut85pIui4asfhfAte6JF-TPbLiUx7-HIedGlngVZCXJ-rImIoAv51bCD4l7abWQ/exec";
 let products = [];
+let currentBarcodes = [];
+
+// ==========================================================
+// HÀM GIAO TIẾP VỚI API - SEND AND FORGET (TRÁNH CORS)
+// ==========================================================
 
 // ==========================================================
 // HÀM GIAO TIẾP VỚI API - SEND AND FORGET (TRÁNH CORS)
@@ -68,6 +71,7 @@ async function loadProductsFromLocal() {
 
     return { products: sampleProducts };
 }
+
 // ==========================================================
 // CÁC HÀM CHỨC NĂNG CHÍNH
 // ==========================================================
@@ -100,23 +104,66 @@ async function loadProducts() {
     }
 }
 
+// Biến để tránh hỏi download nhiều lần
+let isDownloadPrompted = false;
+// Biến để tránh gọi importAndCreate nhiều lần cùng lúc
+let isImporting = false;
+
 async function importAndCreate(maSP, tenSP, soLuong) {
+    // Kiểm tra nếu đang nhập hàng thì bỏ qua
+    if (isImporting) {
+        console.log("Đang nhập hàng, bỏ qua request này...");
+        return;
+    }
+
+    console.log("=== BẮT ĐẦU NHẬP HÀNG ===");
+    console.log("Mã SP:", maSP, "Tên SP:", tenSP, "Số lượng:", soLuong);
+
+    isImporting = true;
     showLoading(true);
     hideAlerts();
+
+    // Reset flag
+    isDownloadPrompted = false;
+
     try {
         // Gửi dữ liệu nhập hàng đến API (send and forget)
+        console.log("Gửi dữ liệu đến backend...");
         await sendToAPI("importProducts", {
-            productCode: maSP,
-            quantity: soLuong,
+            maSP: maSP,
+            tenSP: tenSP,
+            soLuong: soLuong,
         });
 
+        console.log("✅ Nhập hàng thành công!");
         showSuccess(
             `✅ Đã nhập thành công ${soLuong} thùng ${tenSP} vào hệ thống! Dữ liệu đã được lưu vào Google Sheet.`
         );
+
+        // Hỏi người dùng có muốn download PDF không (chỉ 1 lần)
+        console.log("Chuẩn bị hỏi download PDF...");
+        setTimeout(() => {
+            if (!isDownloadPrompted) {
+                console.log("Hiển thị dialog hỏi download...");
+                isDownloadPrompted = true;
+                if (confirm(`Bạn có muốn download PDF mã vạch cho ${soLuong} thùng ${tenSP} không?`)) {
+                    console.log("Người dùng chọn download PDF");
+                    generateAndDownloadBarcodes(maSP, tenSP, soLuong);
+                } else {
+                    console.log("Người dùng từ chối download PDF");
+                }
+            } else {
+                console.log("Đã hỏi download rồi, bỏ qua...");
+            }
+        }, 1000);
+
     } catch (error) {
+        console.error("Lỗi nhập hàng:", error);
         showError(`Lỗi khi gửi yêu cầu nhập hàng: ${error.message}`);
     } finally {
         showLoading(false);
+        isImporting = false; // Reset flag
+        console.log("=== KẾT THÚC NHẬP HÀNG ===");
     }
 }
 
@@ -146,6 +193,7 @@ async function sellAndLog(barcode) {
 
 function populateProductSelect(productsData) {
     const select = document.getElementById("productSelect");
+    if (!select) return;
     select.innerHTML = '<option value="">-- Chọn sản phẩm --</option>';
     productsData.forEach((product) => {
         const option = document.createElement("option");
@@ -154,14 +202,6 @@ function populateProductSelect(productsData) {
         select.appendChild(option);
     });
 }
-
-// Hàm này đã được xóa vì không cần in PDF nữa
-
-// Hàm này đã được xóa vì không cần hiển thị mã vạch nữa
-
-// Các hàm in PDF đã được xóa vì không cần thiết nữa
-
-// ===== UTILITY FUNCTIONS =====
 
 function updateConnectionStatus(message, isConnected) {
     const indicator = document.getElementById("statusIndicator");
@@ -242,8 +282,8 @@ async function testConnection() {
         console.log("=== TEST KẾT NỐI ===");
         console.log("URL:", SCRIPT_URL);
 
-        // Test bằng cách gửi một request đơn giản
-        await sendToAPI("testConnection", { test: true });
+        // Test bằng cách gửi một request đơn giản đến getProducts
+        await sendToAPI("getProducts", {});
 
         updateConnectionStatus("✅ Kết nối thành công!", true);
         showSuccess("Kết nối thành công! API hoạt động bình thường.");
@@ -256,105 +296,123 @@ async function testConnection() {
     }
 }
 
-/**
- * Format số tiền
- */
-function formatCurrency(amount) {
-    return new Intl.NumberFormat("vi-VN", {
-        style: "currency",
-        currency: "VND",
-    }).format(amount);
-}
-
-/**
- * Format ngày tháng
- */
-function formatDate(date) {
-    return new Intl.DateTimeFormat("vi-VN", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-    }).format(new Date(date));
-}
-
-/**
- * Tạo ID ngẫu nhiên
- */
-function generateId() {
-    return Math.random().toString(36).substr(2, 9);
-}
-
-/**
- * Debounce function
- */
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
-
-/**
- * Throttle function
- */
-function throttle(func, limit) {
-    let inThrottle;
-    return function () {
-        const args = arguments;
-        const context = this;
-        if (!inThrottle) {
-            func.apply(context, args);
-            inThrottle = true;
-            setTimeout(() => (inThrottle = false), limit);
+// Hàm tạo và download PDF mã vạch
+function generateAndDownloadBarcodes(maSP, tenSP, soLuong) {
+    try {
+        // Tạo danh sách mã vạch
+        const barcodes = [];
+        for (let i = 1; i <= soLuong; i++) {
+            const barcode = `${maSP}-${String(i).padStart(3, '0')}`;
+            barcodes.push(barcode);
         }
-    };
+
+        // Tạo PDF với jsPDF và JsBarcode
+        printBarcodesPDF(barcodes, tenSP, maSP);
+
+        showSuccess(`✅ Đã tạo và download PDF mã vạch cho ${soLuong} thùng ${tenSP}!`);
+
+    } catch (error) {
+        showError(`Lỗi khi tạo PDF: ${error.message}`);
+    }
 }
 
-// ===== NAVIGATION FUNCTIONS =====
+// Hàm tạo PDF mã vạch với jsPDF và JsBarcode
+function printBarcodesPDF(barcodes, tenSP, maSP) {
+    if (!barcodes || barcodes.length === 0) return;
 
-/**
- * Chuyển trang
- */
-function navigateTo(page) {
-    window.location.href = page;
-}
-
-/**
- * Đánh dấu trang hiện tại trong navigation
- */
-function setActivePage(pageName) {
-    const navItems = document.querySelectorAll(".nav-item");
-    navItems.forEach((item) => {
-        item.classList.remove("active");
-        if (item.getAttribute("data-page") === pageName) {
-            item.classList.add("active");
+    try {
+        // Kiểm tra xem có thư viện jsPDF và JsBarcode không
+        if (typeof window.jspdf === 'undefined' || typeof JsBarcode === 'undefined') {
+            showError("Thư viện jsPDF hoặc JsBarcode chưa được tải. Vui lòng kiểm tra lại.");
+            return;
         }
-    });
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({
+            orientation: "landscape",
+            unit: "mm",
+            format: "a4",
+        });
+
+        // Thêm tiêu đề
+        doc.setFontSize(16);
+        doc.text(`📦 MÃ VẠCH SẢN PHẨM - ${tenSP} (${maSP})`, 10, 15);
+        doc.setFontSize(10);
+        doc.text(`Ngày tạo: ${new Date().toLocaleDateString('vi-VN')} | Số lượng: ${barcodes.length} thùng`, 10, 22);
+
+        const BARCODE_WIDTH_MM = 120;
+        const BARCODE_HEIGHT_MM = 50;
+        const MARGIN = 10;
+        let x = MARGIN,
+            y = MARGIN + 30; // Bắt đầu sau tiêu đề
+
+        const canvas = document.createElement("canvas");
+
+        for (const code of barcodes) {
+            JsBarcode(canvas, code, {
+                format: "CODE128",
+                width: 4,
+                height: 160,
+                displayValue: true,
+                fontSize: 36,
+                margin: 10,
+            });
+            const dataUrl = canvas.toDataURL("image/jpeg", 1.0);
+
+            if (y + BARCODE_HEIGHT_MM > doc.internal.pageSize.getHeight() - MARGIN) {
+                doc.addPage();
+                y = MARGIN;
+            }
+            doc.addImage(
+                dataUrl,
+                "JPEG",
+                x,
+                y,
+                BARCODE_WIDTH_MM,
+                BARCODE_HEIGHT_MM
+            );
+            y += BARCODE_HEIGHT_MM + 5; // Khoảng cách giữa các mã
+        }
+
+        const filename = `barcodes_${maSP}_${new Date().toISOString().slice(0, 10)}.pdf`;
+        doc.save(filename);
+
+    } catch (error) {
+        console.error("Lỗi khi tạo PDF:", error);
+        showError(`Lỗi khi tạo PDF: ${error.message}`);
+    }
 }
 
-// Khởi tạo các trang tương ứng
+
+
+// Biến để tránh đăng ký event listener nhiều lần
+let isFormListenerAdded = false;
+
 document.addEventListener("DOMContentLoaded", () => {
     const page = document.body.dataset.page;
     if (page === "nhaphang") {
         loadProducts();
-        document.getElementById("importForm").addEventListener("submit", (e) => {
-            e.preventDefault();
-            const maSP = document.getElementById("productSelect").value;
-            const soLuong = document.getElementById("quantityInput").value;
-            const product = products.find((p) => p.maSP === maSP);
-            if (product && soLuong > 0) {
-                importAndCreate(maSP, product.tenSP, soLuong);
-            } else {
-                showError("Vui lòng chọn sản phẩm và nhập số lượng hợp lệ.");
-            }
-        });
+
+        // Chỉ đăng ký event listener 1 lần
+        if (!isFormListenerAdded) {
+            isFormListenerAdded = true;
+            console.log("Đăng ký event listener cho form nhập hàng...");
+
+            document.getElementById("importForm").addEventListener("submit", (e) => {
+                e.preventDefault();
+                console.log("Form submitted - xử lý nhập hàng...");
+
+                const maSP = document.getElementById("productSelect").value;
+                const soLuong = document.getElementById("quantityInput").value;
+                const product = products.find((p) => p.maSP === maSP);
+
+                if (product && soLuong > 0) {
+                    importAndCreate(maSP, product.tenSP, soLuong);
+                } else {
+                    showError("Vui lòng chọn sản phẩm và nhập số lượng hợp lệ.");
+                }
+            });
+        }
     }
     // Thêm logic khởi tạo cho các trang 'banhang', 'dashboard' ở đây
 });
