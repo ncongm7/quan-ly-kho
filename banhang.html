@@ -127,7 +127,7 @@
                     "reader",
                     { 
                         fps: 10, 
-                        qrbox: { width: 500, height: 150 },
+                        qrbox: { width: 200, height: 80 },
                         aspectRatio: 1.0
                     },
                     false
@@ -146,6 +146,7 @@
         // Xử lý khi quét thành công
         async function onScanSuccess(decodedText, decodedResult) {
             console.log('Mã vạch quét được:', decodedText);
+
             
             // Dừng scanner
             if (html5QrcodeScanner && isScanning) {

@@ -1,0 +1,8 @@
+const SPREADSHEET_ID = '1kot3RbwFd24wVT2oe6-DLXmBDD6Hc7vK8rgfl_dkE'; // ID ĐÃ ĐÚNG, KHÔNG CẦN THAY ĐỔI
+
+const SHEETS = {
+    PRODUCTS: 'DANH MUC SAN PHAM',
+    IMPORT: 'NHẬP',
+    SALES: 'BÁN',
+    BARCODES: 'DANH SACH BARCODE'
+};
