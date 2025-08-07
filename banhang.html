@@ -146,7 +146,35 @@
         // Xử lý khi quét thành công
         async function onScanSuccess(decodedText, decodedResult) {
             console.log('Mã vạch quét được:', decodedText);
-
+            
+            try {
+                // Hiển thị loading
+                showMessage('Đang xử lý mã vạch...', 'info');
+                
+                // Gửi dữ liệu đến Google Apps Script Web App
+                const data = {
+                    barcode: decodedText
+                };
+                
+                const response = await fetch('https://script.google.com/macros/s/AKfycbyTcrjqRmezNn_DRNLUHKtBaFk3_E8Db0iJeB-tlkSgwjeZVV0oP1gkAb0RJ5Il8CjMmQ/exec', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage(`Đã thêm sản phẩm: ${result.product}`, 'success');
+                } else {
+                    showMessage(result.message, 'error');
+                }
+            } catch (error) {
+                console.error('Lỗi khi gửi dữ liệu:', error);
+                showMessage('Lỗi kết nối đến server', 'error');
+            }
             
             // Dừng scanner
             if (html5QrcodeScanner && isScanning) {
@@ -302,6 +330,23 @@
                 processManualBarcode();
             }
         });
+
+        // Hàm hiển thị thông báo
+        function showMessage(message, type = 'info') {
+            const alertElement = document.getElementById(type + 'Alert');
+            if (alertElement) {
+                alertElement.textContent = message;
+                alertElement.style.display = 'block';
+                
+                // Tự động ẩn sau 5 giây
+                setTimeout(() => {
+                    alertElement.style.display = 'none';
+                }, 5000);
+            }
+            
+            // Cũng log ra console
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
 
         // Khởi tạo trang
         document.addEventListener('DOMContentLoaded', function() {
