@@ -1,4 +1,4 @@
-const SPREADSHEET_ID = '1kot3RbwFd24wVT2oe6-DLXmBDD6Hc7vK8rgfl_dkEUI'; // ID ĐÃ ĐÚNG, KHÔNG CẦN THAY ĐỔI
+const SPREADSHEET_ID = '1kot3RbwFd24wVT2oe6-DLXmBDD6Hc7vK8rgfl_dkEUI';
 
 const SHEETS = {
     PRODUCTS: 'DANH MUC SAN PHAM',
@@ -9,9 +9,18 @@ const SHEETS = {
 
 function doPost(e) {
     try {
-        // Lấy dữ liệu từ request
-        const postData = JSON.parse(e.postData.contents);
-        const barcode = postData.barcode;
+        // Lấy dữ liệu từ request (hỗ trợ cả JSON và form data)
+        let barcode;
+
+        if (e.postData.type === 'application/json') {
+            // Nếu là JSON
+            const postData = JSON.parse(e.postData.contents);
+            barcode = postData.barcode;
+        } else {
+            // Nếu là form data (từ mode no-cors)
+            const formData = e.parameter;
+            barcode = formData.barcode;
+        }
 
         const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEETS.BARCODES);
         const data = sheet.getDataRange().getValues();
@@ -62,8 +71,8 @@ function addBarcodeToSales(product) {
     // Điền đúng cột theo thứ tự: Ngày Bán, Tên Sản phẩm, Số Lượng, Ghi Chú
     const newRow = [
         Utilities.formatDate(now, "GMT+7", "dd/MM/yyyy HH:mm:ss"), // A: Ngày Bán
-        product[2], // B: Tên Sản phẩm (product[2] là tên sản phẩm)
-        1, // C: Số Lượng
+        product[2],
+        1,
         "Bán tự động qua Web App" // D: Ghi Chú
     ];
 
