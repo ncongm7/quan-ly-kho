@@ -1,7 +1,7 @@
 /* ===== JAVASCRIPT CHUNG CHO HỆ THỐNG QUẢN LÝ KHO (ĐÃ SỬA LỖI KẾT NỐI) ===== */
 
 const SCRIPT_URL =
-    "https://script.google.com/macros/s/AKfycbzD3vgut85pIui4asfhfAte6JF-TPbLiUx7-HIedGlngVZCXJ-rImIoAv51bCD4l7abWQ/exec";
+    "https://script.google.com/macros/s/AKfycbyTcrjqRmezNn_DRNLUHKtBaFk3_E8Db0iJeB-tlkSgwjeZVV0oP1gkAb0RJ5Il8CjMmQ/exec"
 let products = [];
 let currentBarcodes = [];
 
