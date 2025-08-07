@@ -158,20 +158,23 @@
                  
                  const response = await fetch('https://script.google.com/macros/s/AKfycbyTcrjqRmezNn_DRNLUHKtBaFk3_E8Db0iJeB-tlkSgwjeZVV0oP1gkAb0RJ5Il8CjMmQ/exec', {
                      method: 'POST',
-                     mode: 'no-cors', // Thêm mode no-cors để tránh CORS
-                     body: new URLSearchParams({
+                     headers: {
+                         'Content-Type': 'application/json'
+                     },
+                     body: JSON.stringify({
                          barcode: decodedText
                      })
                  });
                  
-                 // Với mode no-cors, không thể đọc response, nên giả định thành công
-                 console.log('Request sent successfully with no-cors mode');
-                 result = { success: true, message: 'Đã gửi yêu cầu thành công', product: 'Đang xử lý...', barcode: decodedText };
+                 console.log('Response status:', response.status);
+                 console.log('Response ok:', response.ok);
                  
-                 if (result.success) {
-                     showMessage(`Đã thêm sản phẩm: ${result.product}`, 'success');
+                 if (response.ok) {
+                     const responseData = await response.json();
+                     console.log('Response data:', responseData);
+                     result = responseData;
                  } else {
-                     showMessage(result.message, 'error');
+                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                  }
              } catch (error) {
                  console.error('Lỗi khi gửi dữ liệu:', error);
@@ -185,14 +188,18 @@
                  isScanning = false;
              }
              
-             // Cập nhật kết quả và lịch sử
-             if (result && result.success) {
-                 updateScanResult(`✅ Đã bán thành công: ${result.product} (${result.barcode})`, 'success');
-                 addToRecentSales(result.barcode, 'Thành công');
-             } else {
-                 updateScanResult(`❌ ${result ? result.message : 'Lỗi kết nối'}`, 'error');
-                 addToRecentSales(decodedText, 'Thất bại');
-             }
+                           // Cập nhật kết quả và lịch sử
+              if (result && result.success) {
+                  updateScanResult(`✅ ${result.message}: ${result.product} (${result.barcode})`, 'success');
+                  addToRecentSales(result.barcode, 'Thành công');
+                  showMessage(result.message, 'success');
+              } else {
+                  updateScanResult(`❌ ${result ? result.message : 'Lỗi kết nối'}`, 'error');
+                  addToRecentSales(decodedText, 'Thất bại');
+                  if (result) {
+                      showMessage(result.message, 'error');
+                  }
+              }
              
              // Hiển thị nút quét lại
              document.getElementById('restartBtn').style.display = 'inline-block';
@@ -263,26 +270,35 @@
                   
                   const response = await fetch('https://script.google.com/macros/s/AKfycbyTcrjqRmezNn_DRNLUHKtBaFk3_E8Db0iJeB-tlkSgwjeZVV0oP1gkAb0RJ5Il8CjMmQ/exec', {
                       method: 'POST',
-                      mode: 'no-cors', // Thêm mode no-cors để tránh CORS
-                      body: new URLSearchParams({
+                      headers: {
+                          'Content-Type': 'application/json'
+                      },
+                      body: JSON.stringify({
                           barcode: barcode
                       })
                   });
                   
-                  // Với mode no-cors, không thể đọc response, nên giả định thành công
-                  console.log('Request sent successfully with no-cors mode');
-                  const result = { success: true, message: 'Đã gửi yêu cầu thành công', product: 'Đang xử lý...', barcode: barcode };
-                 
-                 if (result.success) {
-                     updateScanResult(`✅ Đã bán thành công: ${result.product} (${result.barcode})`, 'success');
-                     addToRecentSales(result.barcode, 'Thành công');
-                     document.getElementById('manualBarcode').value = '';
-                     showMessage(`Đã bán sản phẩm: ${result.product}`, 'success');
-                 } else {
-                     updateScanResult(`❌ ${result.message}`, 'error');
-                     addToRecentSales(barcode, 'Thất bại');
-                     showMessage(result.message, 'error');
-                 }
+                  console.log('Response status:', response.status);
+                  console.log('Response ok:', response.ok);
+                  
+                  if (response.ok) {
+                      const responseData = await response.json();
+                      console.log('Response data:', responseData);
+                      result = responseData;
+                  } else {
+                      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                  }
+                  
+                  if (result.success) {
+                      updateScanResult(`✅ ${result.message}: ${result.product} (${result.barcode})`, 'success');
+                      addToRecentSales(result.barcode, 'Thành công');
+                      document.getElementById('manualBarcode').value = '';
+                      showMessage(result.message, 'success');
+                  } else {
+                      updateScanResult(`❌ ${result.message}`, 'error');
+                      addToRecentSales(barcode, 'Thất bại');
+                      showMessage(result.message, 'error');
+                  }
              } catch (error) {
                  console.error('Lỗi khi gửi dữ liệu:', error);
                  updateScanResult(`❌ Lỗi kết nối đến server`, 'error');

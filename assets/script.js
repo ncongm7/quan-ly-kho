@@ -1,7 +1,7 @@
 /* ===== JAVASCRIPT CHUNG CHO HỆ THỐNG QUẢN LÝ KHO (ĐÃ SỬA LỖI KẾT NỐI) ===== */
 
-const SCRIPT_URL =
-    "https://script.google.com/macros/s/AKfycbyTcrjqRmezNn_DRNLUHKtBaFk3_E8Db0iJeB-tlkSgwjeZVV0oP1gkAb0RJ5Il8CjMmQ/exec"
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxZKv7i0rhenJbFZ9qsPJjlOMj5i8zQXHs7aBte_ZXPfMe3A3SoFUtJJ1ycODKSzhWsHQ/exec"
+
 let products = [];
 let currentBarcodes = [];
 
@@ -13,22 +13,27 @@ let currentBarcodes = [];
 // HÀM GIAO TIẾP VỚI API - SEND AND FORGET (TRÁNH CORS)
 // ==========================================================
 
-// Hàm gửi dữ liệu đến API (dùng cho POST - "Gửi và Quên")
+// Hàm gửi dữ liệu đến API và đọc response
 async function sendToAPI(action, data) {
     console.log(`API POST Call: ${action}`, data);
     try {
-        await fetch(SCRIPT_URL, {
+        const response = await fetch(SCRIPT_URL, {
             method: "POST",
-            mode: "no-cors", // **QUAN TRỌNG: Sửa lỗi kết nối**
-            cache: "no-cache",
-            redirect: "follow",
+            headers: {
+                'Content-Type': 'application/json'
+            },
             body: JSON.stringify({ action: action, ...data }),
         });
-        // Với mode 'no-cors', chúng ta không thể đọc response, vì vậy chỉ cần trả về true
-        return true;
+
+        if (response.ok) {
+            const responseData = await response.json();
+            console.log(`API Response for ${action}:`, responseData);
+            return responseData;
+        } else {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
     } catch (error) {
-        // Lỗi này thường là lỗi mạng, không phải lỗi từ server
-        console.error(`Lỗi mạng khi gửi action '${action}':`, error);
+        console.error(`Lỗi khi gửi action '${action}':`, error);
         throw error;
     }
 }
@@ -127,18 +132,20 @@ async function importAndCreate(maSP, tenSP, soLuong) {
     isDownloadPrompted = false;
 
     try {
-        // Gửi dữ liệu nhập hàng đến API (send and forget)
+        // Gửi dữ liệu nhập hàng đến API
         console.log("Gửi dữ liệu đến backend...");
-        await sendToAPI("importProducts", {
+        const response = await sendToAPI("importProducts", {
             maSP: maSP,
             tenSP: tenSP,
             soLuong: soLuong,
         });
 
-        console.log("✅ Nhập hàng thành công!");
-        showSuccess(
-            `✅ Đã nhập thành công ${soLuong} thùng ${tenSP} vào hệ thống! Dữ liệu đã được lưu vào Google Sheet.`
-        );
+        if (response.status === 'success') {
+            console.log("✅ Nhập hàng thành công!");
+            showSuccess(response.message || `✅ Đã nhập thành công ${soLuong} thùng ${tenSP} vào hệ thống!`);
+        } else {
+            throw new Error(response.message || 'Lỗi không xác định');
+        }
 
         // Hỏi người dùng có muốn download PDF không (chỉ 1 lần)
         console.log("Chuẩn bị hỏi download PDF...");
@@ -171,11 +178,14 @@ async function sellAndLog(barcode) {
     showLoading(true);
     hideAlerts();
     try {
-        await sendToAPI("sellBarcode", { barcode });
-        showSuccess(
-            `Yêu cầu bán sản phẩm với mã '${barcode}' đã được gửi. Vui lòng kiểm tra Google Sheet.`
-        );
-        return true; // Giả định thành công
+        const response = await sendToAPI("sellBarcode", { barcode });
+        if (response.status === 'success') {
+            showSuccess(response.message || `Yêu cầu bán sản phẩm với mã '${barcode}' đã được gửi.`);
+            return true;
+        } else {
+            showError(response.message || 'Lỗi không xác định');
+            return false;
+        }
     } catch (error) {
         showError(`Lỗi khi gửi yêu cầu bán hàng: ${error.message}`);
         return false;
@@ -283,10 +293,14 @@ async function testConnection() {
         console.log("URL:", SCRIPT_URL);
 
         // Test bằng cách gửi một request đơn giản đến getProducts
-        await sendToAPI("getProducts", {});
+        const response = await sendToAPI("getProducts", {});
 
-        updateConnectionStatus("✅ Kết nối thành công!", true);
-        showSuccess("Kết nối thành công! API hoạt động bình thường.");
+        if (response.products) {
+            updateConnectionStatus("✅ Kết nối thành công!", true);
+            showSuccess("Kết nối thành công! API hoạt động bình thường.");
+        } else {
+            throw new Error("Response không hợp lệ");
+        }
     } catch (error) {
         console.error("Test connection error:", error);
         updateConnectionStatus("❌ Lỗi kết nối", false);

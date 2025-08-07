@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Web App</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        button { padding: 10px 15px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .result { margin-top: 10px; padding: 10px; border-radius: 3px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        input { padding: 8px; margin: 5px; border: 1px solid #ddd; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test Google Apps Script Web App</h1>
+    
+    <div class="test-section">
+        <h3>1. Test doGet (Kiểm tra Web App hoạt động)</h3>
+        <button onclick="testDoGet()">Test doGet</button>
+        <div id="doGetResult" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>2. Test doPost (Bán sản phẩm)</h3>
+        <input type="text" id="testBarcode" placeholder="Nhập mã vạch để test..." value="123456789">
+        <button onclick="testDoPost()">Test doPost</button>
+        <div id="doPostResult" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>3. Test lấy danh sách sản phẩm</h3>
+        <button onclick="testGetProducts()">Lấy danh sách sản phẩm</button>
+        <div id="getProductsResult" class="result"></div>
+    </div>
+
+    <script>
+        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyTcrjqRmezNn_DRNLUHKtBaFk3_E8Db0iJeB-tlkSgwjeZVV0oP1gkAb0RJ5Il8CjMmQ/exec';
+        
+        async function testDoGet() {
+            const resultDiv = document.getElementById('doGetResult');
+            resultDiv.innerHTML = 'Đang test...';
+            
+            try {
+                const response = await fetch(WEB_APP_URL + '?action=test');
+                const text = await response.text();
+                resultDiv.innerHTML = `<div class="success">✅ doGet hoạt động!<br>Response: ${text}</div>`;
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Lỗi: ${error.message}</div>`;
+            }
+        }
+        
+                 async function testDoPost() {
+             const barcode = document.getElementById('testBarcode').value.trim();
+             if (!barcode) {
+                 alert('Vui lòng nhập mã vạch!');
+                 return;
+             }
+             
+             const resultDiv = document.getElementById('doPostResult');
+             resultDiv.innerHTML = 'Đang gửi request...';
+             
+             try {
+                 const response = await fetch(WEB_APP_URL, {
+                     method: 'POST',
+                     headers: {
+                         'Content-Type': 'application/json'
+                     },
+                     body: JSON.stringify({
+                         barcode: barcode
+                     })
+                 });
+                 
+                 if (response.ok) {
+                     const data = await response.json();
+                     if (data.success) {
+                         resultDiv.innerHTML = `<div class="success">✅ ${data.message}<br>Sản phẩm: ${data.product}<br>Mã vạch: ${data.barcode}</div>`;
+                     } else {
+                         resultDiv.innerHTML = `<div class="error">❌ ${data.message}</div>`;
+                     }
+                 } else {
+                     resultDiv.innerHTML = `<div class="error">❌ HTTP ${response.status}: ${response.statusText}</div>`;
+                 }
+             } catch (error) {
+                 resultDiv.innerHTML = `<div class="error">❌ Lỗi: ${error.message}</div>`;
+             }
+         }
+        
+        async function testGetProducts() {
+            const resultDiv = document.getElementById('getProductsResult');
+            resultDiv.innerHTML = 'Đang lấy danh sách sản phẩm...';
+            
+            try {
+                const response = await fetch(WEB_APP_URL + '?action=getProducts');
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    resultDiv.innerHTML = `<div class="success">✅ Lấy danh sách sản phẩm thành công!<br>Số sản phẩm: ${data.data.length}</div>`;
+                } else {
+                    resultDiv.innerHTML = `<div class="error">❌ Lỗi: ${data.message}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Lỗi: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html> 

@@ -1,3 +1,6 @@
+// ==========================================================
+// CÀI ĐẶT
+// ==========================================================
 const SPREADSHEET_ID = '1kot3RbwFd24wVT2oe6-DLXmBDD6Hc7vK8rgfl_dkEUI';
 
 const SHEETS = {
@@ -7,9 +10,25 @@ const SHEETS = {
     BARCODES: 'DANH SACH BARCODE'
 };
 
+// ==========================================================
+// ĐIỂM TRUY CẬP API
+// ==========================================================
+
+function doGet(e) {
+    try {
+        const action = e.parameter.action;
+        if (action === 'getProducts') {
+            return handleGetProducts();
+        }
+        return createJsonResponse({ status: 'info', message: 'Web App đang hoạt động.' });
+    } catch (err) {
+        return createJsonResponse({ status: 'error', message: 'Lỗi server trong doGet: ' + err.message });
+    }
+}
+
 function doPost(e) {
     try {
-        // Lấy dữ liệu từ request (hỗ trợ cả JSON và form data)
+        // Lấy dữ liệu từ request
         let barcode;
 
         if (e.postData.type === 'application/json') {
@@ -17,15 +36,43 @@ function doPost(e) {
             const postData = JSON.parse(e.postData.contents);
             barcode = postData.barcode;
         } else {
-            // Nếu là form data (từ mode no-cors)
-            const formData = e.parameter;
-            barcode = formData.barcode;
+            // Nếu là form data
+            barcode = e.parameter.barcode;
         }
 
-        const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEETS.BARCODES);
-        const data = sheet.getDataRange().getValues();
+        if (!barcode) {
+            return createJsonResponse({
+                success: false,
+                message: 'Không nhận được mã vạch'
+            });
+        }
 
-        // Tìm sản phẩm và vị trí dòng
+        return handleSellBarcode(barcode);
+    } catch (err) {
+        Logger.log('Lỗi trong doPost: ' + err.stack);
+        return createJsonResponse({
+            success: false,
+            message: 'Lỗi server: ' + err.message
+        });
+    }
+}
+
+// ==========================================================
+// HÀM XỬ LÝ LOGIC
+// ==========================================================
+
+function handleSellBarcode(barcode) {
+    try {
+        const barcodeSheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEETS.BARCODES);
+        if (!barcodeSheet) {
+            return createJsonResponse({
+                success: false,
+                message: 'Không tìm thấy sheet DANH SACH BARCODE'
+            });
+        }
+
+        // Tìm sản phẩm trong sheet
+        const data = barcodeSheet.getDataRange().getValues();
         let productRow = -1;
         let product = null;
 
@@ -37,56 +84,86 @@ function doPost(e) {
             }
         }
 
-        if (product && productRow > 0) {
-            // Thêm vào sheet bán hàng
-            addBarcodeToSales(product);
-
-            // Cập nhật trạng thái sản phẩm thành "Đã Bán"
-            updateProductStatus(sheet, productRow);
-
-            return ContentService.createTextOutput(JSON.stringify({
-                success: true,
-                message: 'Đã bán sản phẩm thành công',
-                product: product[2],
-                barcode: barcode
-            })).setMimeType(ContentService.MimeType.JSON);
-        } else {
-            return ContentService.createTextOutput(JSON.stringify({
+        if (!product || productRow <= 0) {
+            return createJsonResponse({
                 success: false,
                 message: 'Không tìm thấy sản phẩm hoặc sản phẩm không còn trong kho'
-            })).setMimeType(ContentService.MimeType.JSON);
+            });
         }
+
+        // Thêm vào sheet bán hàng
+        const salesSheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEETS.SALES);
+        if (!salesSheet) {
+            return createJsonResponse({
+                success: false,
+                message: 'Không tìm thấy sheet BÁN'
+            });
+        }
+
+        const now = new Date();
+        const formattedDate = Utilities.formatDate(now, "GMT+7", "dd/MM/yyyy HH:mm:ss");
+
+        // Thêm dữ liệu vào sheet BÁN: [Ngày Bán, Tên Sản phẩm, Số Lượng, Ghi Chú]
+        salesSheet.appendRow([
+            formattedDate,
+            product[2], // Tên sản phẩm (cột C)
+            1, // Số lượng
+            'Bán tự động qua Web App'
+        ]);
+
+        // Cập nhật trạng thái sản phẩm thành "Đã Bán"
+        barcodeSheet.getRange(productRow, 5).setValue("Đã Bán");
+
+        return createJsonResponse({
+            success: true,
+            message: 'Đã bán sản phẩm thành công',
+            product: product[2],
+            barcode: barcode
+        });
+
     } catch (error) {
-        return ContentService.createTextOutput(JSON.stringify({
+        Logger.log('Lỗi trong handleSellBarcode: ' + error.stack);
+        return createJsonResponse({
             success: false,
-            message: 'Lỗi: ' + error.toString()
-        })).setMimeType(ContentService.MimeType.JSON);
+            message: 'Lỗi xử lý: ' + error.message
+        });
     }
 }
 
-function addBarcodeToSales(product) {
-    const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEETS.SALES);
-    const now = new Date();
+function handleGetProducts() {
+    try {
+        const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEETS.PRODUCTS);
+        if (!sheet) {
+            return createJsonResponse({
+                success: false,
+                message: 'Không tìm thấy sheet sản phẩm.'
+            });
+        }
 
-    // Điền đúng cột theo thứ tự: Ngày Bán, Tên Sản phẩm, Số Lượng, Ghi Chú
-    const newRow = [
-        Utilities.formatDate(now, "GMT+7", "dd/MM/yyyy HH:mm:ss"), // A: Ngày Bán
-        product[2],
-        1,
-        "Bán tự động qua Web App" // D: Ghi Chú
-    ];
+        const data = sheet.getDataRange().getValues();
+        const headers = data[0];
+        const products = data.slice(1).map(row => {
+            const product = {};
+            headers.forEach((header, index) => {
+                product[header] = row[index];
+            });
+            return product;
+        });
 
-    sheet.appendRow(newRow);
+        return createJsonResponse({
+            success: true,
+            data: products
+        });
+    } catch (err) {
+        return createJsonResponse({
+            success: false,
+            message: 'Lỗi khi lấy danh sách sản phẩm: ' + err.message
+        });
+    }
 }
 
-function updateProductStatus(barcodeSheet, rowNumber) {
-    // Cập nhật trạng thái từ "Trong Kho" thành "Đã Bán"
-    // Cột E (index 4) là cột Trạng Thái
-    barcodeSheet.getRange(rowNumber, 5).setValue("Đã Bán");
-}
-
-// Hàm test để kiểm tra
-function doGet(e) {
-    return ContentService.createTextOutput('Web App đang hoạt động!');
+function createJsonResponse(data) {
+    return ContentService.createTextOutput(JSON.stringify(data))
+        .setMimeType(ContentService.MimeType.JSON);
 }
 
