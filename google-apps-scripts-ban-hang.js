@@ -16,16 +16,30 @@ function doPost(e) {
         const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEETS.BARCODES);
         const data = sheet.getDataRange().getValues();
 
-        const product = data.find(row => {
-            return row[0] === barcode && row[4] === 'Trong Kho';
-        });
+        // Tìm sản phẩm và vị trí dòng
+        let productRow = -1;
+        let product = null;
 
-        if (product) {
+        for (let i = 0; i < data.length; i++) {
+            if (data[i][0] === barcode && data[i][4] === 'Trong Kho') {
+                product = data[i];
+                productRow = i + 1; // +1 vì index bắt đầu từ 0, nhưng sheet row bắt đầu từ 1
+                break;
+            }
+        }
+
+        if (product && productRow > 0) {
+            // Thêm vào sheet bán hàng
             addBarcodeToSales(product);
+
+            // Cập nhật trạng thái sản phẩm thành "Đã Bán"
+            updateProductStatus(sheet, productRow);
+
             return ContentService.createTextOutput(JSON.stringify({
                 success: true,
-                message: 'Đã thêm sản phẩm vào bán hàng',
-                product: product[2]
+                message: 'Đã bán sản phẩm thành công',
+                product: product[2],
+                barcode: barcode
             })).setMimeType(ContentService.MimeType.JSON);
         } else {
             return ContentService.createTextOutput(JSON.stringify({
@@ -44,13 +58,22 @@ function doPost(e) {
 function addBarcodeToSales(product) {
     const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEETS.SALES);
     const now = new Date();
+
+    // Điền đúng cột theo thứ tự: Ngày Bán, Tên Sản phẩm, Số Lượng, Ghi Chú
     const newRow = [
-        Utilities.formatDate(now, "GMT+7", "dd/MM/yyyy HH:mm:ss"), // Ngày bán
-        product[2], // Tên sản phẩm
-        1, // Số lượng
-        "" // Ghi chú
+        Utilities.formatDate(now, "GMT+7", "dd/MM/yyyy HH:mm:ss"), // A: Ngày Bán
+        product[2], // B: Tên Sản phẩm (product[2] là tên sản phẩm)
+        1, // C: Số Lượng
+        "Bán tự động qua Web App" // D: Ghi Chú
     ];
+
     sheet.appendRow(newRow);
+}
+
+function updateProductStatus(barcodeSheet, rowNumber) {
+    // Cập nhật trạng thái từ "Trong Kho" thành "Đã Bán"
+    // Cột E (index 4) là cột Trạng Thái
+    barcodeSheet.getRange(rowNumber, 5).setValue("Đã Bán");
 }
 
 // Hàm test để kiểm tra
