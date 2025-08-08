@@ -8,7 +8,8 @@
     <!-- Thêm thư viện jsPDF và JsBarcode -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
-    <script src="assets/script.js" defer></script>
+    <script src="assets/js/common.js"></script>
+    <script src="assets/js/import.js"></script>
 </head>
 <body data-page="nhaphang">
     <div class="container">
@@ -37,9 +38,7 @@
                 <span class="status-indicator status-disconnected" id="statusIndicator"></span>
                 <span id="connectionText">Đang kết nối với Google Sheets...</span>
                 <br>
-                <button onclick="window.testConnection()" style="margin-top: 10px; padding: 8px 16px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                    🔍 Test Kết Nối
-                </button>
+                
             </div>
 
             <form id="importForm">
@@ -84,26 +83,6 @@
         </div>
     </div>
 
-    <script>
-        // Xử lý form nhập hàng
-        document.getElementById('importForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const productCode = document.getElementById('productSelect').value;
-            const quantity = parseInt(document.getElementById('quantityInput').value);
-            
-            if (!productCode || !quantity) {
-                showError('Vui lòng chọn sản phẩm và nhập số lượng');
-                return;
-            }
-            
-            const product = products.find(p => p.maSP === productCode);
-            if (product) {
-                await importAndCreate(productCode, product.tenSP, quantity);
-            } else {
-                showError('Vui lòng chọn sản phẩm hợp lệ');
-            }
-        });
-    </script>
+
 </body>
 </html> 

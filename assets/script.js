@@ -39,43 +39,43 @@ async function sendToAPI(action, data) {
 }
 
 // Hàm giả lập để lấy danh sách sản phẩm (vì không thể đọc response từ GET)
-async function loadProductsFromLocal() {
-    // Danh sách sản phẩm mẫu - bạn có thể thay đổi theo nhu cầu
-    const sampleProducts = [
-        { tenSP: "MÀI DAO", maSP: "MD" },
-        { tenSP: "VÒI PHUN SƯƠNG", maSP: "VPS" },
-        { tenSP: "KẸP INOX", maSP: "KI" },
-        { tenSP: "BẪY CHUỘT", maSP: "BC" },
-        { tenSP: "TẤM CHẮN NẮNG O TÔ", maSP: "TCNO" },
-        { tenSP: "NẠO RAU CỦ", maSP: "NRC" },
-        { tenSP: "KIỀNG BẾP GA", maSP: "KBG" },
-        { tenSP: "KẸP ĐỒ NÓNG", maSP: "KDN" },
-        { tenSP: "ĐẦU NỐI ĐA NĂNG", maSP: "DNDN" },
-        { tenSP: "RƠ LƯỠI", maSP: "RL" },
-        { tenSP: "PHUN THUỐC", maSP: "PT" },
-        { tenSP: "NẠO VẢY CÁ", maSP: "NVC" },
-        { tenSP: "TAY NẮM CỬA", maSP: "TNC" },
-        { tenSP: "GIÁ ĐỠ DT DÁN TƯỜNG", maSP: "GDDT" },
-        { tenSP: "PHAO CHỐNG TRÀN (HPL)", maSP: "PCT" },
-        { tenSP: "XỊT VỆ SINH ( HPL )", maSP: "XVS" },
-        { tenSP: "BÁNH XE ĐỠ CỬA", maSP: "BXDC" },
-        { tenSP: "KHÓA TỦ LẠNH", maSP: "KTL" },
-        { tenSP: "GIÁ ĐỠ VÒI SEN", maSP: "GDVS" },
-        { tenSP: "CHỔI NVS", maSP: "CNVS" },
-        { tenSP: "MÓC TREO DÂY ĐIỆN", maSP: "MTDD" },
-        { tenSP: "CHỐNG VĂNG ( HPL )", maSP: "CV" },
-        { tenSP: "VÒI 360", maSP: "V360" },
-        { tenSP: "BÀN CHẢI ĐA NĂNG", maSP: "BCDN" },
-        { tenSP: "ĐUI ĐÈN", maSP: "DD" },
-        { tenSP: "LÓT MŨ", maSP: "LM" },
-        { tenSP: "XÂM THỊT", maSP: "XT" },
-        { tenSP: "BÀN CHẢI TẮM", maSP: "BCT" },
-        { tenSP: "VAN CỐNG ( HPL )", maSP: "VC" },
-        { tenSP: "ĐẦU TƯỚI NƯỚC TỰ ĐỘNG", maSP: "DTNTD" },
-    ];
+// async function loadProductsFromLocal() {
+//     // Danh sách sản phẩm mẫu - bạn có thể thay đổi theo nhu cầu
+//     const sampleProducts = [
+//         { tenSP: "MÀI DAO", maSP: "MD" },
+//         { tenSP: "VÒI PHUN SƯƠNG", maSP: "VPS" },
+//         { tenSP: "KẸP INOX", maSP: "KI" },
+//         { tenSP: "BẪY CHUỘT", maSP: "BC" },
+//         { tenSP: "TẤM CHẮN NẮNG O TÔ", maSP: "TCNO" },
+//         { tenSP: "NẠO RAU CỦ", maSP: "NRC" },
+//         { tenSP: "KIỀNG BẾP GA", maSP: "KBG" },
+//         { tenSP: "KẸP ĐỒ NÓNG", maSP: "KDN" },
+//         { tenSP: "ĐẦU NỐI ĐA NĂNG", maSP: "DNDN" },
+//         { tenSP: "RƠ LƯỠI", maSP: "RL" },
+//         { tenSP: "PHUN THUỐC", maSP: "PT" },
+//         { tenSP: "NẠO VẢY CÁ", maSP: "NVC" },
+//         { tenSP: "TAY NẮM CỬA", maSP: "TNC" },
+//         { tenSP: "GIÁ ĐỠ DT DÁN TƯỜNG", maSP: "GDDT" },
+//         { tenSP: "PHAO CHỐNG TRÀN (HPL)", maSP: "PCT" },
+//         { tenSP: "XỊT VỆ SINH ( HPL )", maSP: "XVS" },
+//         { tenSP: "BÁNH XE ĐỠ CỬA", maSP: "BXDC" },
+//         { tenSP: "KHÓA TỦ LẠNH", maSP: "KTL" },
+//         { tenSP: "GIÁ ĐỠ VÒI SEN", maSP: "GDVS" },
+//         { tenSP: "CHỔI NVS", maSP: "CNVS" },
+//         { tenSP: "MÓC TREO DÂY ĐIỆN", maSP: "MTDD" },
+//         { tenSP: "CHỐNG VĂNG ( HPL )", maSP: "CV" },
+//         { tenSP: "VÒI 360", maSP: "V360" },
+//         { tenSP: "BÀN CHẢI ĐA NĂNG", maSP: "BCDN" },
+//         { tenSP: "ĐUI ĐÈN", maSP: "DD" },
+//         { tenSP: "LÓT MŨ", maSP: "LM" },
+//         { tenSP: "XÂM THỊT", maSP: "XT" },
+//         { tenSP: "BÀN CHẢI TẮM", maSP: "BCT" },
+//         { tenSP: "VAN CỐNG ( HPL )", maSP: "VC" },
+//         { tenSP: "ĐẦU TƯỚI NƯỚC TỰ ĐỘNG", maSP: "DTNTD" },
+//     ];
 
-    return { products: sampleProducts };
-}
+//     return { products: sampleProducts };
+// }
 
 // ==========================================================
 // CÁC HÀM CHỨC NĂNG CHÍNH
@@ -213,14 +213,7 @@ function populateProductSelect(productsData) {
     });
 }
 
-function updateConnectionStatus(message, isConnected) {
-    const indicator = document.getElementById("statusIndicator");
-    const text = document.getElementById("connectionText");
-    if (indicator)
-        indicator.className = `status-indicator ${isConnected ? "status-connected" : "status-disconnected"
-            }`;
-    if (text) text.textContent = message;
-}
+
 
 function showLoading(show) {
     const loading = document.getElementById("loading");
