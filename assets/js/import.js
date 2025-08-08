@@ -251,6 +251,6 @@ function initializeImportPage() {
 }
 
 // Khởi tạo khi trang load
-if (document.body.dataset.page === 'nhaphang') {
+if (document.body && document.body.dataset && document.body.dataset.page === 'nhaphang') {
     document.addEventListener('DOMContentLoaded', initializeImportPage);
 } 

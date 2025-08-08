@@ -89,6 +89,6 @@ function initializeDashboard() {
 }
 
 // Khởi tạo khi trang load
-if (document.body.dataset.page === 'dashboard') {
+if (document.body && document.body.dataset && document.body.dataset.page === 'dashboard') {
     document.addEventListener('DOMContentLoaded', initializeDashboard);
 } 

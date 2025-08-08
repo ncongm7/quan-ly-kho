@@ -316,6 +316,6 @@ function initializeSalesPage() {
 }
 
 // Khởi tạo khi trang load
-if (document.body.dataset.page === 'banhang') {
+if (document.body && document.body.dataset && document.body.dataset.page === 'banhang') {
     document.addEventListener('DOMContentLoaded', initializeSalesPage);
 } 

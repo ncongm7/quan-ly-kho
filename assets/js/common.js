@@ -3,7 +3,7 @@
 // Cấu hình API - CẬP NHẬT SAU KHI DEPLOY RIÊNG BIỆT
 const API_CONFIG = {
     // URL cũ (tạm thời giữ lại để test)
-    IMPORT_URL: "https://script.google.com/macros/s/AKfycby5gjCGHPSv_inleaclfwqdNSsBAa_SvU1W5uXc1KL77zPHpiRzrfYiYANDCJCcQr5W/exec",
+    IMPORT_URL: "https://script.google.com/macros/s/AKfycbz1_yEY8FcKuNetaZZnWGwIHfIHpmqECYAz98zoPyLvL_86SaHXP_OfjFWGy8Xtqq_yLw/exec",
     SALES_URL: "https://script.google.com/macros/s/AKfycbyTcrjqRmezNn_DRNLUHKtBaFk3_E8Db0iJeB-tlkSgwjeZVV0oP1gkAb0RJ5Il8CjMmQ/exec",
     DASHBOARD_URL: "https://script.google.com/macros/s/AKfycbxZKv7i0rhenJbFZ9qsPJjlOMj5i8zQXHs7aBte_ZXPfMe3A3SoFUtJJ1ycODKSzhWsHQ/exec"
 
@@ -310,11 +310,13 @@ function printBarcodesPDF(barcodes, tenSP, maSP) {
 // ==========================================================
 
 document.addEventListener("DOMContentLoaded", () => {
-    const page = document.body.dataset.page;
+    const page = document.body && document.body.dataset ? document.body.dataset.page : null;
     console.log(`Trang ${page} đã load`);
 
     // Set active page
-    setActivePage(page);
+    if (page) {
+        setActivePage(page);
+    }
 
     // Khởi tạo theo từng trang
     switch (page) {

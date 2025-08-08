@@ -25,6 +25,13 @@ function doGet(e) {
     }
 }
 
+function doOptions(e) {
+    return ContentService.createTextOutput('')
+        .setHeader('Access-Control-Allow-Origin', '*')
+        .setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        .setHeader('Access-Control-Allow-Headers', 'Content-Type');
+}
+
 function doPost(e) {
     try {
         const data = JSON.parse(e.postData.contents);
@@ -87,7 +94,10 @@ function handleSellBarcode(data) {
 
 function createJsonResponse(data) {
     return ContentService.createTextOutput(JSON.stringify(data))
-        .setMimeType(ContentService.MimeType.JSON);
+        .setMimeType(ContentService.MimeType.JSON)
+        .setHeader('Access-Control-Allow-Origin', '*')
+        .setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        .setHeader('Access-Control-Allow-Headers', 'Content-Type');
 }
 
 // ==========================================================

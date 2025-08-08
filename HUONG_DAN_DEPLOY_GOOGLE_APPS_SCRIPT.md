@@ -142,12 +142,10 @@ curl -X POST "URL_DASHBOARD" \
 
 1. **Quyền truy cập**: Đảm bảo tài khoản deploy có quyền đọc/ghi spreadsheet
 2. **SPREADSHEET_ID**: Kiểm tra ID spreadsheet đã đúng chưa
-3. **CORS**: Nếu gặp lỗi CORS, thêm header trong response:
-   ```javascript
-   return ContentService.createTextOutput(JSON.stringify(data))
-       .setMimeType(ContentService.MimeType.JSON)
-       .setHeader('Access-Control-Allow-Origin', '*');
-   ```
+3. **CORS**: Đã được cấu hình sẵn trong các file deploy. Nếu vẫn gặp lỗi CORS, kiểm tra:
+   - Đã thêm hàm `doOptions()` để xử lý preflight request
+   - Đã thêm headers CORS trong `createJsonResponse()`
+   - Deploy lại script sau khi sửa đổi
 4. **Rate Limiting**: Google Apps Script có giới hạn 20 requests/phút cho free tier
 5. **Logging**: Sử dụng `Logger.log()` để debug trong Google Apps Script editor
 
